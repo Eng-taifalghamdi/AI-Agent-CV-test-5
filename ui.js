@@ -575,8 +575,16 @@ function createCandidateCard(candidateData, language = 'en') {
         if (catalogEntry && catalogEntry.nameAr) displayName = catalogEntry.nameAr;
       }
 
-      let hours = catalogEntry?.totalHours || catalogEntry?.["Total Hours"] || 0;
+      //Ghaith's change start - Get hours from Total Hours column
+      let hours = 0;
+      if (catalogEntry) {
+        hours = catalogEntry.totalHours || 
+                catalogEntry["Total Hours"] || 
+                catalogEntry["عدد الساعات"] || 
+                0;
+      }
       hours = Number(hours) || 0;
+      //Ghaith's change end
       trainingTimeline.push({ name: displayName, hours });
       trainingTotalHours += hours;
 
@@ -945,8 +953,16 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
           displayName = catalogEntry.nameAr;
         }
 
-        let hours = catalogEntry?.totalHours || catalogEntry?.["Total Hours"] || 0;
+        //Ghaith's change start - Get hours from Total Hours column
+        let hours = 0;
+        if (catalogEntry) {
+          hours = catalogEntry.totalHours || 
+                  catalogEntry["Total Hours"] || 
+                  catalogEntry["عدد الساعات"] || 
+                  0;
+        }
         hours = Number(hours) || 0;
+        //Ghaith's change end
         trainingTimeline.push({ name: displayName, hours });
         trainingTotalHours += hours;
 
