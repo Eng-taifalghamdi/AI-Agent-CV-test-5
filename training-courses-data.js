@@ -22,9 +22,53 @@ export async function loadTrainingCourses() {
       if (!response.ok) {
         throw new Error(`Failed to load training courses: ${response.statusText}`);
       }
-      return response.json();
+      //Ghaith's change start - Handle malformed JSON (not wrapped in array)
+      return response.text();
+      //Ghaith's change end
     })
-    .then((coursesJson) => {
+    .then((jsonText) => {
+      //Ghaith's change start - Fix JSON format if needed
+      let cleanedText = jsonText.trim();
+      
+      // If the JSON doesn't start with '[', it's likely not wrapped in an array
+      // Try to wrap it in an array
+      if (!cleanedText.startsWith('[')) {
+        // Remove leading/trailing whitespace and newlines
+        cleanedText = cleanedText.trim();
+        
+        // If it starts with '{', wrap it in an array
+        if (cleanedText.startsWith('{')) {
+          // Check if it ends with '}' (single object) or '}' followed by comma (multiple objects)
+          // We need to find all objects and wrap them in an array
+          // Simple approach: wrap the entire content in an array
+          cleanedText = '[' + cleanedText;
+          
+          // Ensure it ends with ']'
+          if (!cleanedText.endsWith(']')) {
+            // Remove trailing comma if present
+            cleanedText = cleanedText.replace(/,\s*$/, '');
+            cleanedText = cleanedText + ']';
+          }
+        }
+      }
+      
+      // Parse the cleaned JSON
+      let coursesJson;
+      try {
+        coursesJson = JSON.parse(cleanedText);
+      } catch (parseError) {
+        console.error("JSON Parse Error:", parseError);
+        console.error("First 500 chars of cleaned text:", cleanedText.substring(0, 500));
+        throw new Error(`Failed to parse training courses JSON: ${parseError.message}`);
+      }
+      
+      // Ensure it's an array
+      if (!Array.isArray(coursesJson)) {
+        // If it's a single object, wrap it in an array
+        coursesJson = [coursesJson];
+      }
+      //Ghaith's change end
+      
       TRAINING_COURSES_DATABASE = coursesJson.map((course, index) => ({
         id: `training_${index + 1}_${(course["Training Course Title"] || "")
           .replace(/\s+/g, "_")
@@ -70,3 +114,4 @@ export function getTrainingCoursesDatabase() {
   return TRAINING_COURSES_DATABASE || [];
 }
 //Ghaith's change end
+
