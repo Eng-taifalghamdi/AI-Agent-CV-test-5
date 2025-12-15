@@ -1738,6 +1738,41 @@ body.keep-ltr-layout .bot-message ul {
   cursor: pointer;
 }
 
+/* 14-12-2025 Starting Taif's updates */
+
+.recommendation-intro {
+  margin: 8px 0 16px 0;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text);
+  box-shadow: none;
+}
+
+html[lang="ar"] .recommendation-intro {
+  border: none;
+  direction: rtl;
+  text-align: right;
+}
+
+@media (max-width: 720px) {
+  .recommendation-intro {
+    padding: 0;
+    font-size: 0.9rem;
+  }
+}
+.pdf-recommendation-intro {
+  margin: 8px 0 16px 0;
+  padding: 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #023B42;
+}
+/* 14-12-2025 Ending Taif's updates */
+
 /*Ghaith's change start - compact recommendations section to fit more CVs on screen */
 #recommendations-container {
   font-size: 0.90rem;
