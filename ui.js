@@ -765,7 +765,8 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
     pdfContainer.style.fontFamily = "'Roboto', sans-serif";
   }
 
-  // 2. Add Header
+  // 2. Add Header (match UI header styling)
+  //Ghaith's change start
   const header = document.createElement('div');
   header.className = 'pdf-header';
   const now = new Date().toLocaleDateString(isArabic ? 'ar-SA' : 'en-US');
@@ -774,10 +775,49 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
   const generatedText = UI_TEXT[language].pdfGeneratedOn;
   
   header.innerHTML = `
-    <h1><i class="fas fa-file-invoice"></i> SkillMatch Pro</h1>
-    <p class="tagline">${titleText} - ${generatedText}: ${now}</p>
+    <div style="
+      background: linear-gradient(90deg, #15878A, #007D89);
+      color: #fff;
+      padding: 16px 18px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    ">
+      <div style="display:flex; align-items:center; gap:10px; font-size:22px; font-weight:700;">
+        <i class="fas fa-file-invoice" style="font-size:24px;"></i>
+        <span>SkillMatch Pro</span>
+      </div>
+      <div style="font-size:13px; font-weight:400;">
+        ${titleText} - ${generatedText}: ${now}
+      </div>
+    </div>
   `;
   pdfContainer.appendChild(header);
+  //Ghaith's change end
+
+  //Ghaith's change start - inline compact styles for PDF cards/timelines (smaller to fit pages)
+  const pdfStyle = document.createElement('style');
+  pdfStyle.textContent = `
+    /*Ghaith's change start - compact PDF */
+    .pdf-content { font-size: 12px; }
+    .pdf-candidate-result { margin-top: 8px; padding-bottom: 6px; }
+    .pdf-subsection { margin-top: 6px; }
+    .pdf-subsection h3 { font-size: 13.5px; margin: 8px 0 6px 0; }
+    .pdf-recommendation-card { font-size: 12px; padding: 6px 8px !important; }
+    .pdf-recommendation-title { font-size: 13px; }
+    .pdf-recommendation-reason { font-size: 12px; }
+    .pdf-recommendation-hours, .pdf-recommendation-rule { font-size: 11.5px; }
+    .timeline-wrapper { margin-top: 4px; }
+    .timeline-title { font-size: 12px; margin-bottom: 3px; }
+    .stacked-bar .segment-hours { font-size: 10.5px; }
+    .stacked-labels .segment-label { font-size: 10.5px; }
+    .total-label { font-size: 11.5px; }
+    /*Ghaith's change end */
+  `;
+  pdfContainer.appendChild(pdfStyle);
+  //Ghaith's change end
 
   // 3. Iterate candidates and build content
   recommendations.candidates.forEach(candidate => {
