@@ -1560,7 +1560,10 @@ document.addEventListener("DOMContentLoaded", async () => {
           allRecommendationsMap[cv.name] = {
              candidateName: result.candidateName || cv.name,
              cvName: cv.name,
-             recommendations: result.recommendations || []
+             //Ghaith's change start - store both certificates and training courses for PDF/UI
+             recommendations: result.recommendations || [],
+             trainingCourses: result.trainingCourses || []
+             //Ghaith's change end
           };
 
           lastRecommendations = { candidates: Object.values(allRecommendationsMap) };
