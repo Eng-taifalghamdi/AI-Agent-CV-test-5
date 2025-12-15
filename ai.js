@@ -784,13 +784,19 @@ export function displayRecommendations(recommendations, containerEl, resultsSect
               c["Training Course Title"] === rec.courseName
             );
 
-          //Ghaith's change start - Get hours from Total Hours column
+          //Ghaith's change start - Get hours from Total Hours column or recommendation
           let hours = 0;
           if (catalogEntry) {
             hours = catalogEntry.totalHours || 
                     catalogEntry["Total Hours"] || 
                     catalogEntry["عدد الساعات"] || 
                     0;
+          }
+          if (!hours && rec.hours) {
+            hours = rec.hours;
+          }
+          if (!hours && rec.totalHours) {
+            hours = rec.totalHours;
           }
           hours = Number(hours) || 0;
           //Ghaith's change end
