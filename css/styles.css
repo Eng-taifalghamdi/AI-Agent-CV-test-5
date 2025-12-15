@@ -1783,8 +1783,8 @@ html[lang="ar"] .recommendation-intro {
 /* Visible separator line between CV recommendation blocks */
 #recommendations-container .candidate-result + .candidate-result {
   border-top: 3px solid rgba(0, 0, 0, 0.18);
-  margin-top: 14px;
-  padding-top: 14px;
+  margin-top: 18px;
+  padding-top: 18px;
 }
 #recommendations-container .candidate-name {
   font-size: 0.95rem;
