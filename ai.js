@@ -383,11 +383,17 @@ export async function analyzeSingleCvWithAI(cv, rulesArray, language = 'en') {
   //Ghaith's change start
   const trainingCatalogString = getTrainingCoursesCatalogAsPromptString();
   //Ghaith's change end
-  const langInstruction = language === 'ar' 
-    //Ghaith's change start
-    ? "Output the 'reason' field strictly in Arabic. Keep 'candidateName', 'certName', and 'courseName' in their original text."
-    //Ghaith's change end
-    : "Output the 'reason' field in English.";
+
+  // 14-12-2025 Taif + Ghaith/Joud merged instruction
+  const langInstruction =
+    language === 'ar'
+      ? "Output the 'reason' field AND 'recommendationIntro' field strictly in Arabic. Keep 'candidateName', 'certName', and 'courseName' in their original text."
+      : "Output the 'reason' field AND 'recommendationIntro' field in English.";
+
+  const introTemplate =
+    language === 'ar'
+      ? "مقدمة موجزة تنتهي بـ: بناءً على ذلك، نوصي بالشهادات التالية: (50 كلمة كحد أقصى)"
+      : "Brief intro ending with: Based on this, we recommend the following certificates: (MAXIMUM 50 WORDS)";
 
   const prompt = `
 ${ANALYSIS_SYSTEM_PROMPT.trim()}
@@ -398,6 +404,8 @@ ${catalogString}
 **Catalog of Training Courses:**
 ${trainingCatalogString}
 //Ghaith's change end
+
+**LANGUAGE INSTRUCTION:**
 ${langInstruction}
 
 **Business Rules:**
@@ -410,18 +418,19 @@ ${cv.text}
 **Task:**
 Provide recommendations for this specific candidate in strict JSON format.
 
-**JSON Structure:**
+**JSON Structure (SINGLE OBJECT, NOT ARRAY):**
 {
   "candidateName": "Full Name Extracted from CV",
+  "recommendationIntro": "${introTemplate}",
   "recommendations": [
     {
       "certId": "pmp",
       "certName": "Project Management Professional (PMP)",
-      "reason": "Clear explanation of why this matches.",
+      "reason": "${language === 'ar' ? 'السبب باللغة العربية' : 'Reason in English'}",
       "rulesApplied": ["Rule 1"]
     }
   ],
-//Ghaith's change start
+  //Ghaith's change start
   "trainingCourses": [
     {
       "courseId": "training_1_...",
@@ -430,10 +439,20 @@ Provide recommendations for this specific candidate in strict JSON format.
       "rulesApplied": ["Rule 1"]
     }
   ]
-//Ghaith's change end
+  //Ghaith's change end
 }
 
-**CRITICAL:** Respond ONLY with valid JSON. No markdown formatting.
+**CRITICAL REMINDERS:**
+- recommendationIntro MUST be in ${language === 'ar' ? 'Arabic' : 'English'}
+- recommendationIntro MUST be MAXIMUM 50 WORDS
+- recommendationIntro MUST end with "${language === 'ar' ? 'بناءً على ذلك، نوصي بالشهادات التالية:' : 'Based on this, we recommend the following certificates:'}"
+- recommendationIntro should ONLY describe candidate background (seniority, years, expertise)
+- Do NOT mention WHY certifications are recommended in the intro
+- reason field MUST be in ${language === 'ar' ? 'Arabic' : 'English'}
+- Respond with a SINGLE OBJECT, NOT wrapped in "candidates" array
+- Response must be valid JSON only
+- No markdown formatting
+- Start with { and end with }
 `;
 
   const rawResponse = await callGeminiAPI(prompt, [], "");
@@ -491,7 +510,14 @@ Provide recommendations for this specific candidate in strict JSON format.
 
   try {
     const singleResult = JSON.parse(cleaned);
-    singleResult.cvName = cv.name; 
+    singleResult.cvName = cv.name;
+    // Ensure recommendationIntro exists as a string for downstream UI/PDF usage
+    if (typeof singleResult.recommendationIntro !== "string") {
+      singleResult.recommendationIntro =
+        language === "ar"
+          ? "لم يتم العثور على توصيات مناسبة بناءً على المعلومات المتاحة. بناءً على ذلك، نوصي بالشهادات التالية:"
+          : "No suitable recommendations found based on available information. Based on this, we recommend the following certificates:";
+    }
     return singleResult;
   } catch (err) {
     console.error(`Error parsing AI response for ${cv.name}:`, err);
@@ -499,6 +525,10 @@ Provide recommendations for this specific candidate in strict JSON format.
     return {
       candidateName: cv.name,
       cvName: cv.name,
+      recommendationIntro:
+        language === "ar"
+          ? "لم يتم العثور على توصيات مناسبة بناءً على المعلومات المتاحة. بناءً على ذلك، نوصي بالشهادات التالية:"
+          : "No suitable recommendations found based on available information. Based on this, we recommend the following certificates:",
       recommendations: [],
       error: "Failed to generate recommendations."
     };
@@ -600,6 +630,26 @@ export function displayRecommendations(recommendations, containerEl, resultsSect
         nameDiv.textContent = rawName;
       }
       candidateDiv.appendChild(nameDiv);
+
+      // 14-12-2025 Taif's update merged - candidate intro block
+      const introDiv = document.createElement("div");
+      introDiv.className = "recommendation-intro";
+
+      let introText =
+        candidate.recommendationIntro || candidate.recommendationSummary || "";
+
+      if (!introText) {
+        if (language === "ar") {
+          introText =
+            "هذا دور مهم ويتطلب خبرة قوية على المستوى الاستراتيجي. بناءً على خبرات المرشح الحالية ودوره المستهدف، تم ترشيح الشهادات التالية لأنها تعزز المهارات الأساسية وتدعم التقدّم المهني.";
+        } else {
+          introText =
+            "This is a senior and critical role that requires strong strategic capability. Based on the candidate's background and target responsibilities, the following certifications are recommended to strengthen core skills and support career growth.";
+        }
+      }
+
+      introDiv.textContent = introText;
+      candidateDiv.appendChild(introDiv);
 
       //Ghaith's change start
       // ========== CERTIFICATES SUBSECTION ==========
@@ -900,6 +950,72 @@ export function displayRecommendations(recommendations, containerEl, resultsSect
   
   console.log("📊 displayRecommendations completed. Total candidates displayed:", 
     recommendations?.candidates?.length || 0);
+}
+
+// 14-12-2025 Taif's updates merged - translateRecommendations helper
+export async function translateRecommendations(recommendations, targetLang) {
+  if (
+    !recommendations ||
+    !recommendations.candidates ||
+    recommendations.candidates.length === 0
+  ) {
+    return recommendations;
+  }
+
+  const translationPrompt =
+    targetLang === "ar"
+      ? `You are a professional translator. Translate the following certification recommendation content from English to Arabic. Maintain the same meaning, tone, and professional style.
+
+CRITICAL RULES:
+
+- Translate ONLY the "recommendationIntro" and "reason" fields
+- Keep "candidateName", "certName", "certId", and "rulesApplied" exactly as they are
+- Maintain the same JSON structure
+- Do not add or remove any information
+- Keep the translation concise and professional
+- Return ONLY valid JSON, no markdown, no explanations
+
+Input JSON:
+${JSON.stringify(recommendations, null, 2)}
+
+Return the translated JSON object starting with { and ending with }:`
+      : `You are a professional translator. Translate the following certification recommendation content from Arabic to English. Maintain the same meaning, tone, and professional style.
+
+CRITICAL RULES:
+
+- Translate ONLY the "recommendationIntro" and "reason" fields
+- Keep "candidateName", "certName", "certId", and "rulesApplied" exactly as they are
+- Maintain the same JSON structure
+- Do not add or remove any information
+- Keep the translation concise and professional
+- Return ONLY valid JSON, no markdown, no explanations
+
+Input JSON:
+${JSON.stringify(recommendations, null, 2)}
+
+Return the translated JSON object starting with { and ending with }:`;
+
+  try {
+    const rawResponse = await callGeminiAPI(translationPrompt, [], "");
+
+    let cleaned = rawResponse.trim();
+    cleaned = cleaned
+      .replace(/```json\s*/gi, "")
+      .replace(/```\s*/g, "")
+      .trim();
+
+    const firstBrace = cleaned.indexOf("{");
+    const lastBrace = cleaned.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace !== -1) {
+      cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+    }
+
+    const translated = JSON.parse(cleaned);
+    return translated;
+  } catch (err) {
+    console.error("Translation failed:", err);
+    return recommendations;
+  }
 }
 
 // Re-export utility used in UI for CV summary
