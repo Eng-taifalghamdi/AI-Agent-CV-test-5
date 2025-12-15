@@ -835,15 +835,24 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
     const nameHeader = document.createElement('h3');
     nameHeader.className = 'pdf-candidate-name';
     nameHeader.style.color = '#15878A';
+    //Ghaith's change start - reduce spacing for first candidate to ensure certificates start on page 1
+    if (index === 0) {
+      nameHeader.style.marginTop = '8px';
+      nameHeader.style.marginBottom = '6px';
+    }
+    //Ghaith's change end
     nameHeader.textContent = `${UI_TEXT[language].pdfCandidate}: ${displayCandidateName}`;
     candidateSection.appendChild(nameHeader);
 
     if (candidate.cvName && candidate.cvName !== displayCandidateName) {
       const fileDiv = document.createElement('div');
       fileDiv.className = 'pdf-candidate-cv-name';
-      //Ghaith's change start - darken file name text
+      //Ghaith's change start - darken file name text, reduce spacing for first candidate
       fileDiv.style.color = '#023B42';
       fileDiv.style.fontWeight = '600';
+      if (index === 0) {
+        fileDiv.style.marginBottom = '4px';
+      }
       //Ghaith's change end
       fileDiv.textContent = `${UI_TEXT[language].pdfFile}: ${candidate.cvName}`;
       candidateSection.appendChild(fileDiv);
@@ -854,8 +863,10 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
     if (candidate.recommendations && candidate.recommendations.length > 0) {
       const certSubsection = document.createElement('div');
       certSubsection.className = 'pdf-subsection';
-      certSubsection.innerHTML = `<h3 style="color:#023B42; margin-top:20px;">${language === 'ar' ? 'الشهادات' : 'Certificates'}</h3>`;
-      //Ghaith's change start - avoid page breaks in certificates subsection
+      //Ghaith's change start - certificates section should start on page 1 for first candidate
+      const certMarginTop = index === 0 ? '12px' : '20px';
+      certSubsection.innerHTML = `<h3 style="color:#023B42; margin-top:${certMarginTop};">${language === 'ar' ? 'الشهادات' : 'Certificates'}</h3>`;
+      //Ghaith's change start - avoid page breaks in certificates subsection, ensure first one starts on page 1
       certSubsection.style.pageBreakInside = 'avoid';
       certSubsection.style.breakInside = 'avoid';
       certSubsection.style.pageBreakBefore = 'avoid';
