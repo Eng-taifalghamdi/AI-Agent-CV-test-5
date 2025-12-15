@@ -1257,7 +1257,9 @@ function renderCvDetails(cv) {
 
   sections.forEach((sec) => {
     const secDiv = document.createElement("div");
-    secDiv.className = "cv-section";
+    //Ghaith's change start - add section-specific class to apply layout (company under title)
+    secDiv.className = `cv-section${sec.key ? ` cv-section-${sec.key}` : ""}`;
+    //Ghaith's change end
     secDiv.innerHTML = `<h3>${sec.label}</h3>`;
     let listDiv;
     if (sec.key === "skills") {
@@ -1617,7 +1619,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       setButtonLoading(generateBtn, false);
-      updateStatus(rulesStatus, getUiText('completedCVs'));
+      //Ghaith's change start - remove popup/status in business rules after generating recs
+      if (rulesStatus) rulesStatus.innerHTML = "";
+      //Ghaith's change end
       updateDownloadButtonVisibility(lastRecommendations);
     });
   }
