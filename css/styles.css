@@ -1716,3 +1716,44 @@ body.keep-ltr-layout .bot-message ul {
   cursor: pointer;
 }
 
+/*Ghaith's change start - compact recommendations section to fit more CVs on screen */
+#recommendations-container {
+  font-size: 0.94rem;
+  line-height: 1.4;
+}
+#recommendations-container .candidate-result {
+  gap: 8px;
+}
+#recommendations-container .candidate-name {
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+#recommendations-container .recommendation-card {
+  padding: 10px 12px;
+  font-size: 0.93rem;
+}
+#recommendations-container .recommendation-title {
+  font-size: 1rem;
+}
+#recommendations-container .recommendation-reason {
+  font-size: 0.93rem;
+}
+#recommendations-container .recommendation-hours,
+#recommendations-container .recommendation-rule {
+  font-size: 0.9rem;
+}
+#recommendations-container .timeline-title {
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+}
+#recommendations-container .segment-label {
+  font-size: 0.85rem;
+}
+#recommendations-container .segment-hours {
+  font-size: 0.85rem;
+}
+#recommendations-container .total-label {
+  font-size: 0.9rem;
+}
+/*Ghaith's change end */
+
