@@ -1302,6 +1302,12 @@ html[lang="ar"] .search-icon {
   grid-column: 1 / -1;
 }
 
+/*Ghaith's change start - place company under role title in CV review */
+.cv-section-experience .item-row .cv-field-company {
+  grid-column: 1 / -1;
+}
+/*Ghaith's change end */
+
 .cv-section-experience .item-row .cv-description-textarea {
   grid-column: 1 / -1;
 }
