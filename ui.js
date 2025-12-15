@@ -787,6 +787,10 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
   recommendations.candidates.forEach(candidate => {
     const candidateSection = document.createElement('div');
     candidateSection.className = 'pdf-candidate-result';
+    //Ghaith's change start - avoid page breaks splitting candidate sections
+    candidateSection.style.pageBreakInside = 'avoid';
+    candidateSection.style.breakInside = 'avoid';
+    //Ghaith's change end
 
     // Candidate Name
     let displayCandidateName = candidate.candidateName;
@@ -813,6 +817,10 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
       const certSubsection = document.createElement('div');
       certSubsection.className = 'pdf-subsection';
       certSubsection.innerHTML = `<h3 style="color:#023B42; margin-top:20px;">${language === 'ar' ? 'الشهادات' : 'Certificates'}</h3>`;
+      //Ghaith's change start - avoid page breaks in certificates subsection
+      certSubsection.style.pageBreakInside = 'avoid';
+      certSubsection.style.breakInside = 'avoid';
+      //Ghaith's change end
       
       let certTimeline = [];
       let certTotalHours = 0;
@@ -874,6 +882,10 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
       if (certTimeline.length > 0 && certTotalHours > 0) {
         const timelineWrapper = document.createElement('div');
         timelineWrapper.className = 'timeline-wrapper';
+        //Ghaith's change start - avoid page breaks on timeline
+        timelineWrapper.style.pageBreakInside = 'avoid';
+        timelineWrapper.style.breakInside = 'avoid';
+        //Ghaith's change end
         
         const titleText = isArabic ? "الوقت التقريبي لإكمال الشهادات المقترحة" : "Estimated timeline to complete recommended certificates";
         const totalLabel = UI_TEXT[language].total;
@@ -942,6 +954,10 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
       const trainingSubsection = document.createElement('div');
       trainingSubsection.className = 'pdf-subsection';
       trainingSubsection.innerHTML = `<h3 style="color:#023B42; margin-top:20px;">${language === 'ar' ? 'الدورات التدريبية' : 'Training Courses'}</h3>`;
+      //Ghaith's change start - avoid page breaks in training subsection
+      trainingSubsection.style.pageBreakInside = 'avoid';
+      trainingSubsection.style.breakInside = 'avoid';
+      //Ghaith's change end
       
       let trainingTimeline = [];
       let trainingTotalHours = 0;
@@ -1009,6 +1025,10 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
       if (trainingTimeline.length > 0 && trainingTotalHours > 0) {
         const timelineWrapper = document.createElement('div');
         timelineWrapper.className = 'timeline-wrapper';
+        //Ghaith's change start - avoid page breaks on training timeline
+        timelineWrapper.style.pageBreakInside = 'avoid';
+        timelineWrapper.style.breakInside = 'avoid';
+        //Ghaith's change end
         
         const titleText = isArabic ? "الوقت التقريبي لإكمال الدورات التدريبية المقترحة" : "Estimated timeline to complete recommended training courses";
         const totalLabel = UI_TEXT[language].total;
