@@ -1446,6 +1446,21 @@ const renderSubmittedCvBubbles = (allResults) => {
         displayRecommendations(allRecommendations, recommendationsContainer, resultsSection, currentLang);
       }
       
+      //Ghaith's change start - tie recommendations to uploaded CVs; clear when none remain
+      if (submittedCvData.length === 0) {
+        const recommendationsContainer = document.getElementById("recommendations-container");
+        const resultsSection = document.getElementById("results-section");
+        allRecommendationsMap = {};
+        lastRecommendations = { candidates: [] };
+        saveLastRecommendations(lastRecommendations);
+        if (recommendationsContainer) recommendationsContainer.innerHTML = "";
+        if (resultsSection) resultsSection.classList.add("hidden");
+        updateDownloadButtonVisibility(lastRecommendations);
+      } else {
+        updateDownloadButtonVisibility(lastRecommendations);
+      }
+      //Ghaith's change end
+      
       renderSubmittedCvBubbles(submittedCvData);
       if (submittedCvData.length === 0) updateGenerateButton([]);
     };
