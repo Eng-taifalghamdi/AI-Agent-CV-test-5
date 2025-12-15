@@ -461,11 +461,11 @@ function createCandidateCard(candidateData, language = 'en') {
           <i class="far fa-clock"></i>
           <span>${getUiText('estTime')}</span>
           <strong>${hoursText}</strong>
+          ${rec.rulesApplied && rec.rulesApplied.length > 0
+              ? `<span class="recommendation-rule-inline"><i class="fas fa-gavel"></i> ${getUiText('rulesApplied')} ${rec.rulesApplied.join(", ")}</span>`
+              : ""
+          }
         </div>
-        ${rec.rulesApplied && rec.rulesApplied.length > 0
-            ? `<div class="recommendation-rule"><i class="fas fa-gavel"></i> ${getUiText('rulesApplied')} ${rec.rulesApplied.join(", ")}</div>`
-            : ""
-        }
       `;
       //Ghaith's change start
       certificatesSubsection.appendChild(card);
@@ -843,6 +843,10 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
     if (candidate.cvName && candidate.cvName !== displayCandidateName) {
       const fileDiv = document.createElement('div');
       fileDiv.className = 'pdf-candidate-cv-name';
+      //Ghaith's change start - darken file name text
+      fileDiv.style.color = '#023B42';
+      fileDiv.style.fontWeight = '600';
+      //Ghaith's change end
       fileDiv.textContent = `${UI_TEXT[language].pdfFile}: ${candidate.cvName}`;
       candidateSection.appendChild(fileDiv);
     }
