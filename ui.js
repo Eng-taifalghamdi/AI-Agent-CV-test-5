@@ -762,6 +762,8 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
   //Ghaith's change start - ensure recommendations appear directly under header on same page
   header.style.pageBreakAfter = 'avoid';
   header.style.breakAfter = 'avoid';
+  header.style.marginBottom = '0';
+  header.style.paddingBottom = '0';
   //Ghaith's change end
   const now = new Date().toLocaleDateString(isArabic ? 'ar-SA' : 'en-US');
   
@@ -778,9 +780,10 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
       flex-direction: column;
       gap: 6px;
       box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+      margin-bottom: 0;
     ">
       <div style="display:flex; align-items:center; gap:10px; font-size:22px; font-weight:700;">
-        <i class="fas fa-file-invoice" style="font-size:24px;"></i>
+        <i class="fas fa-user-graduate" style="font-size:24px;"></i>
         <span>SkillMatch Pro</span>
       </div>
       <div style="font-size:13px; font-weight:400;">
@@ -797,6 +800,7 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
     /*Ghaith's change start - compact PDF */
     .pdf-content { font-size: 12px; }
     .pdf-candidate-result { margin-top: 8px; padding-bottom: 6px; }
+    .pdf-candidate-result:first-child { margin-top: 0 !important; padding-top: 0 !important; }
     .pdf-subsection { margin-top: 6px; }
     .pdf-subsection h3 { font-size: 13.5px; margin: 8px 0 6px 0; }
     .pdf-recommendation-card { font-size: 12px; padding: 6px 8px !important; }
@@ -823,6 +827,8 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
     if (index === 0) {
       candidateSection.style.pageBreakBefore = 'avoid';
       candidateSection.style.breakBefore = 'avoid';
+      candidateSection.style.marginTop = '0';
+      candidateSection.style.paddingTop = '0';
     } else {
       candidateSection.style.pageBreakBefore = 'always';
       candidateSection.style.breakBefore = 'page';
