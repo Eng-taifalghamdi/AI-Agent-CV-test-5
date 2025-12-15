@@ -212,10 +212,11 @@ function getUiText(key) {
 // LANGUAGE HANDLING
 // ===========================================================================
 
+// 14-12-2025 Starting Taif's updates
 function updateLanguage(lang) {
   currentLang = lang;
   document.documentElement.lang = lang;
-  
+
   if (lang === 'ar') {
     document.body.classList.add('keep-ltr-layout');
     document.body.classList.remove('ltr-layout');
@@ -262,7 +263,7 @@ function updateLanguage(lang) {
   const newDefaults = lang === 'en' ? DEFAULT_RULES_EN : DEFAULT_RULES_AR;
 
   const isUsingDefaults = JSON.stringify(currentRulesFromUI) === JSON.stringify(prevDefaults);
-  
+
   if (isUsingDefaults) {
     userRules = [...newDefaults];
     initializeRulesUI(userRules);
@@ -274,23 +275,39 @@ function updateLanguage(lang) {
     });
   }
 
-  // Re-render uploaded CVs (to translate 'X exp | Y skills' if needed)
   if (submittedCvData.length > 0) {
     renderSubmittedCvBubbles(submittedCvData);
   }
 
-  // Re-render recommendations to translate headers/titles
   const recommendationsContainer = document.getElementById("recommendations-container");
-  if (recommendationsContainer && lastRecommendations && lastRecommendations.candidates && lastRecommendations.candidates.length > 0) {
-    recommendationsContainer.innerHTML = "";
-    lastRecommendations.candidates.forEach(candidate => {
-      const card = createCandidateCard(candidate, lang);
-      card.style.opacity = "1";
-      card.style.animation = "none";
-      recommendationsContainer.appendChild(card);
-    });
+  const resultsSection = document.getElementById("results-section");
+
+  if (
+    recommendationsContainer &&
+    lastRecommendations &&
+    lastRecommendations.candidates &&
+    lastRecommendations.candidates.length > 0
+  ) {
+    recommendationsContainer.innerHTML = `<div class="loader"></div>`;
+
+    (async () => {
+      try {
+        const { translateRecommendations } = await import("./ai.js");
+        const translatedRecommendations = await translateRecommendations(lastRecommendations, lang);
+
+        lastRecommendations = translatedRecommendations;
+        saveLastRecommendations(lastRecommendations);
+
+        recommendationsContainer.innerHTML = "";
+        displayRecommendations(translatedRecommendations, recommendationsContainer, resultsSection, lang);
+      } catch (err) {
+        recommendationsContainer.innerHTML = "";
+        displayRecommendations(lastRecommendations, recommendationsContainer, resultsSection, lang);
+      }
+    })();
   }
 }
+// 14-12-2025 Ending Taif's updates
 
 function initializeLanguage() {
   const toggleBtn = document.getElementById('language-toggle');
@@ -368,15 +385,17 @@ function getRulesFromUI() {
   return rules;
 }
 
-// Start
-function updateGenerateButton(cvs = []) {
+// 14-12-2025 Starting Taif's updates
+function updateGenerateButton(uploadedCvs) {
   const generateBtn = document.getElementById("generate-recommendations-btn");
-  if (!generateBtn) return;
-
-  const hasSelected = cvs.some(cv => cv.selected !== false);
-  generateBtn.disabled = !hasSelected;
+  const fileInput = document.getElementById("file-input");
+  if (generateBtn) {
+    const hasFiles = fileInput && fileInput.files && fileInput.files.length > 0;
+    const hasCvs = uploadedCvs.length > 0;
+    generateBtn.disabled = !hasFiles && !hasCvs;
+  }
 }
-// END
+// 14-12-2025 Ending Taif's updates
 
 // ---------------------------------------------------------------------------
 // Candidate Card Creation (With Timeline)
@@ -876,6 +895,18 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
 
     //Ghaith's change start
     // ========== CERTIFICATES SUBSECTION ==========
+    if (candidate.recommendationIntro) {
+      const introDiv = document.createElement('p');
+      introDiv.className = 'pdf-recommendation-intro';
+      introDiv.style.margin = '8px 0 16px 0';
+      introDiv.style.padding = '0';
+      introDiv.style.fontSize = '11px';
+      introDiv.style.lineHeight = '1.6';
+      introDiv.style.color = '#023B42';
+      introDiv.textContent = candidate.recommendationIntro;
+      candidateSection.appendChild(introDiv);
+    }
+
     if (candidate.recommendations && candidate.recommendations.length > 0) {
       const certSubsection = document.createElement('div');
       certSubsection.className = 'pdf-subsection';
@@ -1701,6 +1732,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       allRecommendationsMap[cv.name] = {
          candidateName: result.candidateName || cv.name,
          cvName: cv.name,
+         // Taif's update start - store intro text for each CV
+         recommendationIntro: result.recommendationIntro || "",
          //Ghaith's change start - store both certificates and training courses for PDF/UI
          recommendations: result.recommendations || [],
          trainingCourses: result.trainingCourses || []
