@@ -759,6 +759,10 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
   //Ghaith's change start
   const header = document.createElement('div');
   header.className = 'pdf-header';
+  //Ghaith's change start - ensure recommendations appear directly under header on same page
+  header.style.pageBreakAfter = 'avoid';
+  header.style.breakAfter = 'avoid';
+  //Ghaith's change end
   const now = new Date().toLocaleDateString(isArabic ? 'ar-SA' : 'en-US');
   
   const titleText = UI_TEXT[language].pdfTitle;
@@ -810,12 +814,16 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
   //Ghaith's change end
 
   // 3. Iterate candidates and build content
-  recommendations.candidates.forEach(candidate => {
+  recommendations.candidates.forEach((candidate, index) => {
     const candidateSection = document.createElement('div');
     candidateSection.className = 'pdf-candidate-result';
-    //Ghaith's change start - avoid page breaks splitting candidate sections
+    //Ghaith's change start - avoid page breaks splitting candidate sections, first candidate should start directly after header
     candidateSection.style.pageBreakInside = 'avoid';
     candidateSection.style.breakInside = 'avoid';
+    if (index === 0) {
+      candidateSection.style.pageBreakBefore = 'avoid';
+      candidateSection.style.breakBefore = 'avoid';
+    }
     //Ghaith's change end
 
     // Candidate Name
