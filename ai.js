@@ -662,24 +662,21 @@ export function displayRecommendations(recommendations, containerEl, resultsSect
             <div class="recommendation-reason">
               <i class="fas fa-lightbulb"></i> ${rec.reason}
             </div>
-            <div class="recommendation-hours">
-            <i class="far fa-clock"></i>
-            <span>${language === "ar"
-                    ? "الوقت التقديري لإكمال الشهادة:"
-                    : "Estimated time to complete:"}
-            </span>
-            <strong>${hoursText}</strong>
+            <div class="recommendation-hours recommendation-hours-inline">
+              <i class="far fa-clock"></i>
+              <span>${language === "ar"
+                      ? "الوقت التقديري لإكمال الشهادة:"
+                      : "Estimated time to complete:"}
+              </span>
+              <strong>${hoursText}</strong>
+              ${
+                rec.rulesApplied && rec.rulesApplied.length > 0
+                  ? `<span class="recommendation-rule-inline">
+                       <i class="fas fa-gavel"></i> Rules Applied: ${rec.rulesApplied.join(", ")}
+                     </span>`
+                  : ""
+              }
             </div>
-            
-            ${
-              rec.rulesApplied && rec.rulesApplied.length > 0
-                ? `<div class="recommendation-rule">
-                     <i class="fas fa-gavel"></i> Rules Applied: ${rec.rulesApplied.join(
-                       ", "
-                     )}
-                   </div>`
-                : ""
-            }
           `;
           //Ghaith's change start
           certificatesSubsection.appendChild(card);
@@ -703,7 +700,7 @@ export function displayRecommendations(recommendations, containerEl, resultsSect
           language === "ar"
             ? "الوقت التقريبي لإكمال الشهادات المقترحة"
             : "Estimated timeline to complete recommended certificates";
-        const totalLabelAr = "الإجمالي";
+        const totalLabel = language === "ar" ? "الإجمالي" : "Total";
         const hourWord = language === "ar" ? "ساعة" : "hours";
         const isArabic = language === "ar";
         const barsHtml = `
@@ -738,20 +735,12 @@ export function displayRecommendations(recommendations, containerEl, resultsSect
             .join("")}
           </div>
         `;
-        const totalHtml =
-          language === "ar"
-            ? `<div class="total-label">${totalLabelAr}: <strong>${certTotalHours}</strong> ${hourWord}</div>`
-            : `<div class="total-label">Total: <strong>${certTotalHours}</strong> ${hourWord}</div>`;
         timelineWrapper.innerHTML = `
           <h4 class="timeline-title ${isArabic ? "timeline-title-rtl" : ""}">
-  ${titleText}
-</h4>
+            ${titleText} — ${totalLabel}: <strong>${certTotalHours}</strong> ${hourWord}
+          </h4>
           <div class="stacked-timeline ${isArabic ? "stacked-timeline-rtl" : ""}">
             ${barsHtml}
-            <div class="total-row">
-              <div class="total-line"></div>
-              ${totalHtml}
-            </div>
           </div>
         `;
         certificatesSubsection.appendChild(timelineWrapper);
@@ -815,23 +804,20 @@ export function displayRecommendations(recommendations, containerEl, resultsSect
               <i class="fas fa-lightbulb"></i> ${rec.reason}
             </div>
             <div class="recommendation-hours">
-            <i class="far fa-clock"></i>
-            <span>${language === "ar"
-                    ? "عدد الساعات:"
-                    : "Total hours:"}
-            </span>
-            <strong>${hoursText}</strong>
+              <i class="far fa-clock"></i>
+              <span>${language === "ar"
+                      ? "عدد الساعات:"
+                      : "Total hours:"}
+              </span>
+              <strong>${hoursText}</strong>
+              ${
+                rec.rulesApplied && rec.rulesApplied.length > 0
+                  ? `<span class="recommendation-rule-inline">
+                       <i class="fas fa-gavel"></i> ${language === "ar" ? "القواعد:" : "Rules:"} ${rec.rulesApplied.join(", ")}
+                     </span>`
+                  : ""
+              }
             </div>
-            
-            ${
-              rec.rulesApplied && rec.rulesApplied.length > 0
-                ? `<div class="recommendation-rule">
-                     <i class="fas fa-gavel"></i> Rules Applied: ${rec.rulesApplied.join(
-                       ", "
-                     )}
-                   </div>`
-                : ""
-            }
           `;
           trainingSubsection.appendChild(card);
         });
@@ -851,7 +837,7 @@ export function displayRecommendations(recommendations, containerEl, resultsSect
           language === "ar"
             ? "الوقت التقريبي لإكمال الدورات التدريبية المقترحة"
             : "Estimated timeline to complete recommended training courses";
-        const totalLabelAr = "الإجمالي";
+        const totalLabel = language === "ar" ? "الإجمالي" : "Total";
         const hourWord = language === "ar" ? "ساعة" : "hours";
         const isArabic = language === "ar";
         const barsHtml = `
@@ -886,20 +872,12 @@ export function displayRecommendations(recommendations, containerEl, resultsSect
             .join("")}
           </div>
         `;
-        const totalHtml =
-          language === "ar"
-            ? `<div class="total-label">${totalLabelAr}: <strong>${trainingTotalHours}</strong> ${hourWord}</div>`
-            : `<div class="total-label">Total: <strong>${trainingTotalHours}</strong> ${hourWord}</div>`;
         timelineWrapper.innerHTML = `
           <h4 class="timeline-title ${isArabic ? "timeline-title-rtl" : ""}">
-  ${titleText}
-</h4>
+            ${titleText} — ${totalLabel}: <strong>${trainingTotalHours}</strong> ${hourWord}
+          </h4>
           <div class="stacked-timeline ${isArabic ? "stacked-timeline-rtl" : ""}">
             ${barsHtml}
-            <div class="total-row">
-              <div class="total-line"></div>
-              ${totalHtml}
-            </div>
           </div>
         `;
         trainingSubsection.appendChild(timelineWrapper);
