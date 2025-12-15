@@ -1028,15 +1028,16 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
     if (candidate.trainingCourses && candidate.trainingCourses.length > 0) {
       const trainingSubsection = document.createElement('div');
       trainingSubsection.className = 'pdf-subsection';
-      //Ghaith's change start - training courses should start at the top of a new page
-      trainingSubsection.innerHTML = `<h3 style="color:#023B42; margin-top:0;">${language === 'ar' ? 'الدورات التدريبية' : 'Training Courses'}</h3>`;
-      //Ghaith's change start - training courses start at top of new page
+      //Ghaith's change start - training courses should start at the top of a new page with spacing to prevent cutoff
+      trainingSubsection.innerHTML = `<h3 style="color:#023B42; margin-top:8px;">${language === 'ar' ? 'الدورات التدريبية' : 'Training Courses'}</h3>`;
+      //Ghaith's change start - training courses start at top of new page, add padding to prevent header cutoff
       trainingSubsection.style.pageBreakInside = 'avoid';
       trainingSubsection.style.breakInside = 'avoid';
       trainingSubsection.style.pageBreakBefore = 'always';
       trainingSubsection.style.breakBefore = 'page';
       trainingSubsection.style.pageBreakAfter = 'avoid';
       trainingSubsection.style.breakAfter = 'avoid';
+      trainingSubsection.style.paddingTop = '4px';
       //Ghaith's change end
       
       let trainingTimeline = [];
