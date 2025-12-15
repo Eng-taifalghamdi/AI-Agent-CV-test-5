@@ -817,12 +817,15 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
   recommendations.candidates.forEach((candidate, index) => {
     const candidateSection = document.createElement('div');
     candidateSection.className = 'pdf-candidate-result';
-    //Ghaith's change start - avoid page breaks splitting candidate sections, first candidate should start directly after header
+    //Ghaith's change start - avoid page breaks splitting candidate sections, each CV starts on new page (except first)
     candidateSection.style.pageBreakInside = 'avoid';
     candidateSection.style.breakInside = 'avoid';
     if (index === 0) {
       candidateSection.style.pageBreakBefore = 'avoid';
       candidateSection.style.breakBefore = 'avoid';
+    } else {
+      candidateSection.style.pageBreakBefore = 'always';
+      candidateSection.style.breakBefore = 'page';
     }
     //Ghaith's change end
 
