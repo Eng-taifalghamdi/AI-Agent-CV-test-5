@@ -559,10 +559,10 @@ function createCandidateCard(candidateData, language = 'en') {
 
       if (trainingCatalog) {
         catalogEntry = trainingCatalog.find(c => c.id === rec.courseId) ||
-          trainingCatalog.find(c =>
-            c.name === rec.courseName ||
-            c["Training Course Title"] === rec.courseName
-          );
+          trainingCatalog.find(c => c.name === rec.courseName) ||
+          trainingCatalog.find(c => c["Training Course Title"] === rec.courseName) ||
+          trainingCatalog.find(c => c.nameAr === rec.courseName) ||
+          trainingCatalog.find(c => c["اسم الدورة التدريبية"] === rec.courseName);
       }
 
       if (language === 'ar') {
@@ -573,7 +573,8 @@ function createCandidateCard(candidateData, language = 'en') {
         let hours = 0;
         if (rec && (rec.hours || rec.totalHours || rec.estimatedHours)) {
           hours = rec.hours || rec.totalHours || rec.estimatedHours || 0;
-        } else if (catalogEntry) {
+        }
+        if (hours === 0 && catalogEntry) {
           hours = catalogEntry.totalHours || 
                   catalogEntry["Total Hours"] || 
                   catalogEntry["عدد الساعات"] || 
@@ -1047,7 +1048,10 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
 
         if (trainingCatalog) {
           catalogEntry = trainingCatalog.find(c => c.id === rec.courseId) ||
-            trainingCatalog.find(c => c.name === rec.courseName || c["Training Course Title"] === rec.courseName);
+            trainingCatalog.find(c => c.name === rec.courseName) ||
+            trainingCatalog.find(c => c["Training Course Title"] === rec.courseName) ||
+            trainingCatalog.find(c => c.nameAr === rec.courseName) ||
+            trainingCatalog.find(c => c["اسم الدورة التدريبية"] === rec.courseName);
         }
 
         if (isArabic && catalogEntry && catalogEntry.nameAr) {
@@ -1056,9 +1060,10 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
 
         //Ghaith's change start - training hours (prefer rec, then catalog) to avoid N/A
         let hours = 0;
-        if (rec && (rec.hours || rec.totalHours)) {
-          hours = rec.hours || rec.totalHours || 0;
-        } else if (catalogEntry) {
+        if (rec && (rec.hours || rec.totalHours || rec.estimatedHours)) {
+          hours = rec.hours || rec.totalHours || rec.estimatedHours || 0;
+        }
+        if (hours === 0 && catalogEntry) {
           hours = catalogEntry.totalHours || 
                   catalogEntry["Total Hours"] || 
                   catalogEntry["عدد الساعات"] || 
