@@ -575,19 +575,15 @@ function createCandidateCard(candidateData, language = 'en') {
         if (catalogEntry && catalogEntry.nameAr) displayName = catalogEntry.nameAr;
       }
 
-      //Ghaith's change start - Get hours from Total Hours column or recommendation
+      //Ghaith's change start - training hours (prefer rec, then catalog) to avoid N/A
       let hours = 0;
-      if (catalogEntry) {
-        hours = catalogEntry.totalHours || 
-                catalogEntry["Total Hours"] || 
-                catalogEntry["عدد الساعات"] || 
-                0;
-      }
-      if (!hours && rec.hours) {
-        hours = rec.hours;
-      }
-      if (!hours && rec.totalHours) {
-        hours = rec.totalHours;
+      if (rec && (rec.hours || rec.totalHours)) {
+        hours = rec.hours || rec.totalHours || 0;
+      } else if (catalogEntry) {
+        hours = catalogEntry.totalHours ||
+          catalogEntry["Total Hours"] ||
+          catalogEntry["عدد الساعات"] ||
+          0;
       }
       hours = Number(hours) || 0;
       //Ghaith's change end
@@ -820,6 +816,10 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
       //Ghaith's change start - avoid page breaks in certificates subsection
       certSubsection.style.pageBreakInside = 'avoid';
       certSubsection.style.breakInside = 'avoid';
+      certSubsection.style.pageBreakBefore = 'avoid';
+      certSubsection.style.pageBreakAfter = 'avoid';
+      certSubsection.style.breakBefore = 'avoid';
+      certSubsection.style.breakAfter = 'avoid';
       //Ghaith's change end
       
       let certTimeline = [];
@@ -954,9 +954,13 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
       const trainingSubsection = document.createElement('div');
       trainingSubsection.className = 'pdf-subsection';
       trainingSubsection.innerHTML = `<h3 style="color:#023B42; margin-top:20px;">${language === 'ar' ? 'الدورات التدريبية' : 'Training Courses'}</h3>`;
-      //Ghaith's change start - avoid page breaks in training subsection
+      //Ghaith's change start - avoid page breaks in training subsection and keep header with content
       trainingSubsection.style.pageBreakInside = 'avoid';
       trainingSubsection.style.breakInside = 'avoid';
+      trainingSubsection.style.pageBreakBefore = 'avoid';
+      trainingSubsection.style.pageBreakAfter = 'avoid';
+      trainingSubsection.style.breakBefore = 'avoid';
+      trainingSubsection.style.breakAfter = 'avoid';
       //Ghaith's change end
       
       let trainingTimeline = [];
@@ -975,19 +979,15 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
           displayName = catalogEntry.nameAr;
         }
 
-        //Ghaith's change start - Get hours from Total Hours column or recommendation
+        //Ghaith's change start - training hours (prefer rec, then catalog) to avoid N/A
         let hours = 0;
-        if (catalogEntry) {
+        if (rec && (rec.hours || rec.totalHours)) {
+          hours = rec.hours || rec.totalHours || 0;
+        } else if (catalogEntry) {
           hours = catalogEntry.totalHours || 
                   catalogEntry["Total Hours"] || 
                   catalogEntry["عدد الساعات"] || 
                   0;
-        }
-        if (!hours && rec.hours) {
-          hours = rec.hours;
-        }
-        if (!hours && rec.totalHours) {
-          hours = rec.totalHours;
         }
         hours = Number(hours) || 0;
         //Ghaith's change end
@@ -1023,12 +1023,16 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
 
       // Training Courses Timeline
       if (trainingTimeline.length > 0 && trainingTotalHours > 0) {
-        const timelineWrapper = document.createElement('div');
-        timelineWrapper.className = 'timeline-wrapper';
-        //Ghaith's change start - avoid page breaks on training timeline
-        timelineWrapper.style.pageBreakInside = 'avoid';
-        timelineWrapper.style.breakInside = 'avoid';
-        //Ghaith's change end
+      const timelineWrapper = document.createElement('div');
+      timelineWrapper.className = 'timeline-wrapper';
+      //Ghaith's change start - avoid page breaks on training timeline
+      timelineWrapper.style.pageBreakInside = 'avoid';
+      timelineWrapper.style.breakInside = 'avoid';
+      timelineWrapper.style.pageBreakBefore = 'avoid';
+      timelineWrapper.style.pageBreakAfter = 'avoid';
+      timelineWrapper.style.breakBefore = 'avoid';
+      timelineWrapper.style.breakAfter = 'avoid';
+      //Ghaith's change end
         
         const titleText = isArabic ? "الوقت التقريبي لإكمال الدورات التدريبية المقترحة" : "Estimated timeline to complete recommended training courses";
         const totalLabel = UI_TEXT[language].total;
