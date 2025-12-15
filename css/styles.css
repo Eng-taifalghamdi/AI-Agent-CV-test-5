@@ -715,8 +715,7 @@ html[lang="ar"] .cv-modal .cv-close-btn {
 
 /* === RESULTS === */
 .results-section { margin-top: var(--space-l); padding: var(--space-m); border-radius: var(--radius-md); box-shadow: var(--card-shadow); background: var(--card-bg); }
-.candidate-result { padding: var(--space-s) 0; border-bottom: var(--border); }
-.candidate-result:last-child { border-bottom: none; }
+.candidate-result { padding: var(--space-s) 0; }
 .candidate-cv-name { color: var(--text); font-size: 0.9rem; margin: 0 0 var(--space-xs) 0; font-weight: 400; }
 .candidate-name { color: var(--primary); font-size: 1.05rem; margin: 0 0 var(--space-xs) 0; }
 .recommendation-card { background: #fbfbfc; padding: var(--space-s); border-left: 4px solid var(--secondary); border-radius: 8px; margin-bottom: var(--space-s); }
@@ -1780,6 +1779,12 @@ html[lang="ar"] .recommendation-intro {
 }
 #recommendations-container .candidate-result {
   gap: 6px;
+}
+/* Visible separator line between CV recommendation blocks */
+#recommendations-container .candidate-result + .candidate-result {
+  border-top: var(--border);
+  margin-top: 12px;
+  padding-top: 12px;
 }
 #recommendations-container .candidate-name {
   font-size: 0.95rem;
