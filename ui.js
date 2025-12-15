@@ -427,6 +427,28 @@ function createCandidateCard(candidateData, language = 'en') {
     candidateDiv.appendChild(fileDiv);
   }
 
+  // 14-12-2025 Taif's intro in main UI cards as well
+  const introDiv = document.createElement("div");
+  introDiv.className = "recommendation-intro";
+
+  let introText =
+    candidateData.recommendationIntro ||
+    candidateData.recommendationSummary ||
+    "";
+
+  if (!introText) {
+    if (language === "ar") {
+      introText =
+        "هذا دور مهم ويتطلب خبرة قوية على المستوى الاستراتيجي. بناءً على خبرات المرشح الحالية ودوره المستهدف، تم ترشيح الشهادات التالية لأنها تعزز المهارات الأساسية وتدعم التقدّم المهني.";
+    } else {
+      introText =
+        "This is a senior and critical role that requires strong strategic capability. Based on the candidate's background and target responsibilities, the following certifications are recommended to strengthen core skills and support career growth.";
+    }
+  }
+
+  introDiv.textContent = introText;
+  candidateDiv.appendChild(introDiv);
+
   //Ghaith's change start
   // ========== CERTIFICATES SUBSECTION ==========
   const certificatesSubsection = document.createElement("div");
