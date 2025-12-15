@@ -485,10 +485,12 @@ function createCandidateCard(candidateData, language = 'en') {
     const timelineWrapper = document.createElement("div");
     timelineWrapper.className = "timeline-wrapper";
 
-    const titleText = language === "ar" ? "الوقت التقريبي لإكمال الشهادات المقترحة" : "Estimated timeline to complete recommended certificates";
-    const totalLabel = getUiText('total');
+    //Ghaith's change start - make timeline more compact by including total in title
     const hourWord = getUiText('hours');
     const isArabic = language === "ar";
+    const baseTitleText = language === "ar" ? "الوقت التقريبي لإكمال الشهادات المقترحة" : "Estimated timeline to complete recommended certificates";
+    const titleText = `${baseTitleText} (${getUiText('total')}: ${certTotalHours} ${hourWord})`;
+    //Ghaith's change end
 
     // Helper color function
     function getColor(hours) {
@@ -527,22 +529,14 @@ function createCandidateCard(candidateData, language = 'en') {
       </div>
     `;
 
-    const totalHtml = `
-      <div class="total-label">
-        ${totalLabel}: <strong>${certTotalHours}</strong> ${hourWord}
-      </div>
-    `;
-
+    //Ghaith's change start - remove total row, total now in title
     timelineWrapper.innerHTML = `
       <h4 class="timeline-title ${isArabic ? "timeline-title-rtl" : ""}">${titleText}</h4>
       <div class="stacked-timeline ${isArabic ? "stacked-timeline-rtl" : ""}">
         ${barsHtml}
-        <div class="total-row">
-          <div class="total-line"></div>
-          ${totalHtml}
-        </div>
       </div>
     `;
+    //Ghaith's change end
     certificatesSubsection.appendChild(timelineWrapper);
   }
   candidateDiv.appendChild(certificatesSubsection);
@@ -595,6 +589,7 @@ function createCandidateCard(candidateData, language = 'en') {
 
       const card = document.createElement("div");
       card.className = "recommendation-card";
+      //Ghaith's change start
       card.innerHTML = `
         <div class="recommendation-title">${displayName}</div>
         <div class="recommendation-reason">
@@ -604,12 +599,13 @@ function createCandidateCard(candidateData, language = 'en') {
           <i class="far fa-clock"></i>
           <span>${getUiText('estTime')}</span>
           <strong>${hoursText}</strong>
+          ${rec.rulesApplied && rec.rulesApplied.length > 0
+              ? `<span class="recommendation-rule-inline"><i class="fas fa-gavel"></i> ${getUiText('rulesApplied')} ${rec.rulesApplied.join(", ")}</span>`
+              : ""
+          }
         </div>
-        ${rec.rulesApplied && rec.rulesApplied.length > 0
-            ? `<div class="recommendation-rule"><i class="fas fa-gavel"></i> ${getUiText('rulesApplied')} ${rec.rulesApplied.join(", ")}</div>`
-            : ""
-        }
       `;
+      //Ghaith's change end
       trainingSubsection.appendChild(card);
     });
   } else {
@@ -623,10 +619,12 @@ function createCandidateCard(candidateData, language = 'en') {
     const timelineWrapper = document.createElement("div");
     timelineWrapper.className = "timeline-wrapper";
 
-    const titleText = language === "ar" ? "الوقت التقريبي لإكمال الدورات التدريبية المقترحة" : "Estimated timeline to complete recommended training courses";
-    const totalLabel = getUiText('total');
+    //Ghaith's change start - make timeline more compact by including total in title
     const hourWord = getUiText('hours');
     const isArabic = language === "ar";
+    const baseTitleText = language === "ar" ? "الوقت التقريبي لإكمال الدورات التدريبية المقترحة" : "Estimated timeline to complete recommended training courses";
+    const titleText = `${baseTitleText} (${getUiText('total')}: ${trainingTotalHours} ${hourWord})`;
+    //Ghaith's change end
 
     // Helper color function
     function getColor(hours) {
@@ -665,22 +663,14 @@ function createCandidateCard(candidateData, language = 'en') {
       </div>
     `;
 
-    const totalHtml = `
-      <div class="total-label">
-        ${totalLabel}: <strong>${trainingTotalHours}</strong> ${hourWord}
-      </div>
-    `;
-
+    //Ghaith's change start - remove total row, total now in title
     timelineWrapper.innerHTML = `
       <h4 class="timeline-title ${isArabic ? "timeline-title-rtl" : ""}">${titleText}</h4>
       <div class="stacked-timeline ${isArabic ? "stacked-timeline-rtl" : ""}">
         ${barsHtml}
-        <div class="total-row">
-          <div class="total-line"></div>
-          ${totalHtml}
-        </div>
       </div>
     `;
+    //Ghaith's change end
     trainingSubsection.appendChild(timelineWrapper);
   }
   candidateDiv.appendChild(trainingSubsection);
@@ -898,12 +888,16 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
         // Recommendation Card
         const card = document.createElement('div');
         card.className = 'pdf-recommendation-card';
+        //Ghaith's change start - make each card a separate object that won't split across pages
         // Inline styles for safe PDF rendering if external CSS lags
         card.style.marginBottom = '12px';
         card.style.padding = '10px';
         card.style.borderLeft = isArabic ? 'none' : '4px solid #CFB586';
         card.style.borderRight = isArabic ? '4px solid #CFB586' : 'none';
         card.style.backgroundColor = '#fbfbfc';
+        card.style.pageBreakInside = 'avoid';
+        card.style.breakInside = 'avoid';
+        //Ghaith's change end
 
         card.innerHTML = `
           <div class="pdf-recommendation-title" style="font-weight:700; color:#023B42;">${displayName}</div>
@@ -926,14 +920,20 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
       if (certTimeline.length > 0 && certTotalHours > 0) {
         const timelineWrapper = document.createElement('div');
         timelineWrapper.className = 'timeline-wrapper';
-        //Ghaith's change start - avoid page breaks on timeline
+        //Ghaith's change start - make timeline a separate object that won't split across pages
         timelineWrapper.style.pageBreakInside = 'avoid';
         timelineWrapper.style.breakInside = 'avoid';
+        timelineWrapper.style.pageBreakBefore = 'avoid';
+        timelineWrapper.style.pageBreakAfter = 'avoid';
+        timelineWrapper.style.breakBefore = 'avoid';
+        timelineWrapper.style.breakAfter = 'avoid';
         //Ghaith's change end
         
-        const titleText = isArabic ? "الوقت التقريبي لإكمال الشهادات المقترحة" : "Estimated timeline to complete recommended certificates";
-        const totalLabel = UI_TEXT[language].total;
+        //Ghaith's change start - make timeline more compact by including total in title
         const hourWord = UI_TEXT[language].hours;
+        const baseTitleText = isArabic ? "الوقت التقريبي لإكمال الشهادات المقترحة" : "Estimated timeline to complete recommended certificates";
+        const titleText = `${baseTitleText} (${UI_TEXT[language].total}: ${certTotalHours} ${hourWord})`;
+        //Ghaith's change end
 
         function getColor(hours) {
           if (hours <= 100) return "#c8f7c5";
@@ -971,22 +971,14 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
           </div>
         `;
 
-        const totalHtml = `
-          <div class="total-label">
-            ${totalLabel}: <strong>${certTotalHours}</strong> ${hourWord}
-          </div>
-        `;
-
+        //Ghaith's change start - remove total row, total now in title
         timelineWrapper.innerHTML = `
           <h4 class="timeline-title ${isArabic ? "timeline-title-rtl" : ""}">${titleText}</h4>
           <div class="stacked-timeline ${isArabic ? "stacked-timeline-rtl" : ""}">
             ${barsHtml}
-            <div class="total-row">
-              <div class="total-line"></div>
-              ${totalHtml}
-            </div>
           </div>
         `;
+        //Ghaith's change end
         certSubsection.appendChild(timelineWrapper);
       }
 
@@ -1043,25 +1035,29 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
 
         const card = document.createElement('div');
         card.className = 'pdf-recommendation-card';
+        //Ghaith's change start - make each card a separate object that won't split across pages
         card.style.marginBottom = '12px';
         card.style.padding = '10px';
         card.style.borderLeft = isArabic ? 'none' : '4px solid #CFB586';
         card.style.borderRight = isArabic ? '4px solid #CFB586' : 'none';
         card.style.backgroundColor = '#fbfbfc';
+        card.style.pageBreakInside = 'avoid';
+        card.style.breakInside = 'avoid';
+        //Ghaith's change end
 
+        //Ghaith's change start
         card.innerHTML = `
           <div class="pdf-recommendation-title" style="font-weight:700; color:#023B42;">${displayName}</div>
           <div class="pdf-recommendation-reason" style="margin:6px 0; font-size:0.95rem;">${rec.reason}</div>
           <div class="pdf-recommendation-hours" style="font-size:0.9rem; color:#666;">
             <strong>${UI_TEXT[language].estTime}</strong> ${hoursText}
+            ${rec.rulesApplied && rec.rulesApplied.length > 0
+              ? `<span style="font-style:italic; font-size:0.85rem; color:#888; margin-left:8px;"><i class="fas fa-gavel"></i> ${UI_TEXT[language].rulesApplied} ${rec.rulesApplied.join(", ")}</span>`
+              : ""
+            }
           </div>
-          ${rec.rulesApplied && rec.rulesApplied.length > 0
-            ? `<div class="pdf-recommendation-rule" style="font-style:italic; font-size:0.85rem; color:#888; margin-top:4px;">
-               ${UI_TEXT[language].rulesApplied} ${rec.rulesApplied.join(", ")}
-               </div>`
-            : ""
-          }
         `;
+        //Ghaith's change end
         trainingSubsection.appendChild(card);
       });
 
@@ -1078,9 +1074,11 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
       timelineWrapper.style.breakAfter = 'avoid';
       //Ghaith's change end
         
-        const titleText = isArabic ? "الوقت التقريبي لإكمال الدورات التدريبية المقترحة" : "Estimated timeline to complete recommended training courses";
-        const totalLabel = UI_TEXT[language].total;
+        //Ghaith's change start - make timeline more compact by including total in title
         const hourWord = UI_TEXT[language].hours;
+        const baseTitleText = isArabic ? "الوقت التقريبي لإكمال الدورات التدريبية المقترحة" : "Estimated timeline to complete recommended training courses";
+        const titleText = `${baseTitleText} (${UI_TEXT[language].total}: ${trainingTotalHours} ${hourWord})`;
+        //Ghaith's change end
 
         function getColor(hours) {
           if (hours <= 100) return "#c8f7c5";
@@ -1118,22 +1116,14 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
           </div>
         `;
 
-        const totalHtml = `
-          <div class="total-label">
-            ${totalLabel}: <strong>${trainingTotalHours}</strong> ${hourWord}
-          </div>
-        `;
-
+        //Ghaith's change start - remove total row, total now in title
         timelineWrapper.innerHTML = `
           <h4 class="timeline-title ${isArabic ? "timeline-title-rtl" : ""}">${titleText}</h4>
           <div class="stacked-timeline ${isArabic ? "stacked-timeline-rtl" : ""}">
             ${barsHtml}
-            <div class="total-row">
-              <div class="total-line"></div>
-              ${totalHtml}
-            </div>
           </div>
         `;
+        //Ghaith's change end
         trainingSubsection.appendChild(timelineWrapper);
       }
 
@@ -1616,6 +1606,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       resultsSection.classList.remove("hidden");
       resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
+      //Ghaith's change start - remove empty business rule inputs before generating
+      const rulesContainer = document.getElementById("rules-container");
+      if (rulesContainer) {
+        const ruleInputs = rulesContainer.querySelectorAll(".rule-input");
+        ruleInputs.forEach(input => {
+          if (!input.value.trim()) {
+            const wrapper = input.closest(".rule-input-wrapper");
+            if (wrapper) wrapper.remove();
+          }
+        });
+      }
+      //Ghaith's change end
+
       const rules = getRulesFromUI();
       // const cvArray = submittedCvData; replaced this line with the below line 
       const cvArray = submittedCvData.filter(cv => cv.selected); 
@@ -1759,10 +1762,24 @@ document.addEventListener("DOMContentLoaded", async () => {
       e.preventDefault();
       const container = document.getElementById("rules-container");
       if (container) {
-        const newInput = createRuleInput();
-        container.appendChild(newInput);
-        const input = newInput.querySelector('input');
-        if (input) input.focus();
+        //Ghaith's change start - check if there's already an empty rule input
+        const existingInputs = container.querySelectorAll(".rule-input");
+        let hasEmptyInput = false;
+        for (const input of existingInputs) {
+          if (!input.value.trim()) {
+            hasEmptyInput = true;
+            input.focus();
+            break; // Focus the first empty input and stop
+          }
+        }
+        
+        if (!hasEmptyInput) {
+          const newInput = createRuleInput();
+          container.appendChild(newInput);
+          const input = newInput.querySelector('input');
+          if (input) input.focus();
+        }
+        //Ghaith's change end
       }
     });
   }
