@@ -786,8 +786,8 @@ export function displayRecommendations(recommendations, containerEl, resultsSect
 
           //Ghaith's change start - training hours (prefer rec, then catalog) to avoid N/A
           let hours = 0;
-          if (rec && (rec.hours || rec.totalHours)) {
-            hours = rec.hours || rec.totalHours || 0;
+          if (rec && (rec.hours || rec.totalHours || rec.estimatedHours)) {
+            hours = rec.hours || rec.totalHours || rec.estimatedHours || 0;
           } else if (catalogEntry) {
             hours = catalogEntry.totalHours || 
                     catalogEntry["Total Hours"] || 
