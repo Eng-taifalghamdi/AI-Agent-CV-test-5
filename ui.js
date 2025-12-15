@@ -747,6 +747,10 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
   // 1. Create a container for the PDF content
   const pdfContainer = document.createElement('div');
   pdfContainer.className = 'pdf-content';
+  //Ghaith's change start - remove top spacing so header is at very top of page
+  pdfContainer.style.marginTop = '0';
+  pdfContainer.style.paddingTop = '0';
+  //Ghaith's change end
   if (isArabic) {
     pdfContainer.style.direction = 'rtl';
     pdfContainer.style.textAlign = 'right';
@@ -759,10 +763,12 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
   //Ghaith's change start
   const header = document.createElement('div');
   header.className = 'pdf-header';
-  //Ghaith's change start - ensure recommendations appear directly under header on same page
+  //Ghaith's change start - ensure recommendations appear directly under header on same page, header at very top
   header.style.pageBreakAfter = 'avoid';
   header.style.breakAfter = 'avoid';
+  header.style.marginTop = '0';
   header.style.marginBottom = '0';
+  header.style.paddingTop = '0';
   header.style.paddingBottom = '0';
   //Ghaith's change end
   const now = new Date().toLocaleDateString(isArabic ? 'ar-SA' : 'en-US');
@@ -927,19 +933,23 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
         card.style.breakInside = 'avoid';
         //Ghaith's change end
 
+        //Ghaith's change start - match exact UI format with icons and inline rules
         card.innerHTML = `
-          <div class="pdf-recommendation-title" style="font-weight:700; color:#023B42;">${displayName}</div>
-          <div class="pdf-recommendation-reason" style="margin:6px 0; font-size:0.95rem;">${rec.reason}</div>
-          <div class="pdf-recommendation-hours" style="font-size:0.9rem; color:#666;">
-            <strong>${UI_TEXT[language].estTime}</strong> ${hoursText}
+          <div class="recommendation-title" style="font-weight:600; font-size:1rem; margin:0 0 8px 0; color:#023B42;">${displayName}</div>
+          <div class="recommendation-reason" style="margin:8px 0; color:#023B42; line-height:1.6;">
+            <i class="fas fa-lightbulb"></i> ${rec.reason}
           </div>
-          ${rec.rulesApplied && rec.rulesApplied.length > 0
-            ? `<div class="pdf-recommendation-rule" style="font-style:italic; font-size:0.85rem; color:#888; margin-top:4px;">
-               ${UI_TEXT[language].rulesApplied} ${rec.rulesApplied.join(", ")}
-               </div>`
-            : ""
-          }
+          <div class="recommendation-hours" style="margin-top:4px; font-size:0.9rem; color:#7E9196; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <i class="far fa-clock" style="color:#15878A;"></i>
+            <span>${UI_TEXT[language].estTime}</span>
+            <strong style="color:#023B42; font-weight:600;">${hoursText}</strong>
+            ${rec.rulesApplied && rec.rulesApplied.length > 0
+              ? `<span class="recommendation-rule-inline" style="margin-top:0; font-size:0.85rem; color:#7E9196; font-style:italic;"><i class="fas fa-gavel"></i> ${UI_TEXT[language].rulesApplied} ${rec.rulesApplied.join(", ")}</span>`
+              : ""
+            }
+          </div>
         `;
+        //Ghaith's change end
         //Ghaith's change start
         certSubsection.appendChild(card);
       });
@@ -1017,13 +1027,14 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
     if (candidate.trainingCourses && candidate.trainingCourses.length > 0) {
       const trainingSubsection = document.createElement('div');
       trainingSubsection.className = 'pdf-subsection';
-      trainingSubsection.innerHTML = `<h3 style="color:#023B42; margin-top:20px;">${language === 'ar' ? 'الدورات التدريبية' : 'Training Courses'}</h3>`;
-      //Ghaith's change start - avoid page breaks in training subsection and keep header with content
+      //Ghaith's change start - training courses should start at the top of a new page
+      trainingSubsection.innerHTML = `<h3 style="color:#023B42; margin-top:0;">${language === 'ar' ? 'الدورات التدريبية' : 'Training Courses'}</h3>`;
+      //Ghaith's change start - training courses start at top of new page
       trainingSubsection.style.pageBreakInside = 'avoid';
       trainingSubsection.style.breakInside = 'avoid';
-      trainingSubsection.style.pageBreakBefore = 'avoid';
+      trainingSubsection.style.pageBreakBefore = 'always';
+      trainingSubsection.style.breakBefore = 'page';
       trainingSubsection.style.pageBreakAfter = 'avoid';
-      trainingSubsection.style.breakBefore = 'avoid';
       trainingSubsection.style.breakAfter = 'avoid';
       //Ghaith's change end
       
@@ -1073,14 +1084,18 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
         card.style.breakInside = 'avoid';
         //Ghaith's change end
 
-        //Ghaith's change start
+        //Ghaith's change start - match exact UI format with icons and inline rules
         card.innerHTML = `
-          <div class="pdf-recommendation-title" style="font-weight:700; color:#023B42;">${displayName}</div>
-          <div class="pdf-recommendation-reason" style="margin:6px 0; font-size:0.95rem;">${rec.reason}</div>
-          <div class="pdf-recommendation-hours" style="font-size:0.9rem; color:#666;">
-            <strong>${UI_TEXT[language].estTime}</strong> ${hoursText}
+          <div class="recommendation-title" style="font-weight:600; font-size:1rem; margin:0 0 8px 0; color:#023B42;">${displayName}</div>
+          <div class="recommendation-reason" style="margin:8px 0; color:#023B42; line-height:1.6;">
+            <i class="fas fa-lightbulb"></i> ${rec.reason}
+          </div>
+          <div class="recommendation-hours" style="margin-top:4px; font-size:0.9rem; color:#7E9196; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <i class="far fa-clock" style="color:#15878A;"></i>
+            <span>${UI_TEXT[language].estTime}</span>
+            <strong style="color:#023B42; font-weight:600;">${hoursText}</strong>
             ${rec.rulesApplied && rec.rulesApplied.length > 0
-              ? `<span style="font-style:italic; font-size:0.85rem; color:#888; margin-left:8px;"><i class="fas fa-gavel"></i> ${UI_TEXT[language].rulesApplied} ${rec.rulesApplied.join(", ")}</span>`
+              ? `<span class="recommendation-rule-inline" style="margin-top:0; font-size:0.85rem; color:#7E9196; font-style:italic;"><i class="fas fa-gavel"></i> ${UI_TEXT[language].rulesApplied} ${rec.rulesApplied.join(", ")}</span>`
               : ""
             }
           </div>
@@ -1165,13 +1180,15 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
   });
 
   // 5. Trigger PDF Download
+  //Ghaith's change start - remove top margin so header appears at very top of first page
   const opt = {
-    margin: [10, 10, 10, 10], // top, left, bottom, right
+    margin: [0, 10, 10, 10], // top, left, bottom, right - top is 0 for header at top
     filename: `SkillMatch_Recommendations_${new Date().toISOString().slice(0,10)}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
+  //Ghaith's change end
 
   html2pdf().set(opt).from(pdfContainer).save().catch(err => {
     console.error("PDF generation failed:", err);
