@@ -1180,9 +1180,9 @@ function downloadRecommendationsAsPDF(recommendations, language = 'en') {
   });
 
   // 5. Trigger PDF Download
-  //Ghaith's change start - remove top margin so header appears at very top of first page
+  //Ghaith's change start - add white space at top of each page
   const opt = {
-    margin: [0, 10, 10, 10], // top, left, bottom, right - top is 0 for header at top
+    margin: [10, 10, 10, 10], // top, left, bottom, right - top margin for white space on each page
     filename: `SkillMatch_Recommendations_${new Date().toISOString().slice(0,10)}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
