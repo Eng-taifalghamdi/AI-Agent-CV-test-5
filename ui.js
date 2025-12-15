@@ -575,18 +575,18 @@ function createCandidateCard(candidateData, language = 'en') {
         if (catalogEntry && catalogEntry.nameAr) displayName = catalogEntry.nameAr;
       }
 
-      //Ghaith's change start - training hours (prefer rec, then catalog) to avoid N/A
-      let hours = 0;
-      if (rec && (rec.hours || rec.totalHours)) {
-        hours = rec.hours || rec.totalHours || 0;
-      } else if (catalogEntry) {
-        hours = catalogEntry.totalHours ||
-          catalogEntry["Total Hours"] ||
-          catalogEntry["عدد الساعات"] ||
-          0;
-      }
-      hours = Number(hours) || 0;
-      //Ghaith's change end
+        //Ghaith's change start - training hours (prefer rec, then catalog) to avoid N/A
+        let hours = 0;
+        if (rec && (rec.hours || rec.totalHours || rec.estimatedHours)) {
+          hours = rec.hours || rec.totalHours || rec.estimatedHours || 0;
+        } else if (catalogEntry) {
+          hours = catalogEntry.totalHours || 
+                  catalogEntry["Total Hours"] || 
+                  catalogEntry["عدد الساعات"] || 
+                  0;
+        }
+        hours = Number(hours) || 0;
+        //Ghaith's change end
       trainingTimeline.push({ name: displayName, hours });
       trainingTotalHours += hours;
 
@@ -1226,7 +1226,7 @@ function renderCvDetails(cv) {
   container.innerHTML = "";
 
   if (!cv.structured && !cv.education) { 
-      container.innerHTML = `<div class="status-message"><div class="loader"></div> ${getUiText('analyzing')}</div>`;
+    container.innerHTML = `<div class="status-message"><div class="loader"></div> ${getStatusText('analyzing')}</div>`;
       return;
   }
 
@@ -1414,7 +1414,9 @@ const renderSubmittedCvBubbles = (allResults) => {
     metaEl.className = "bubble-meta";
     
     if (cv.isParsing) {
-      metaEl.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i>`;
+      //Ghaith's change start - use status text to avoid undefined during parsing
+      metaEl.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> ${getStatusText('analyzing') || ''}`;
+      //Ghaith's change end
     } else {
       const expCount = (cv.experience || []).length;
       const skillCount = (cv.skills || []).length;
@@ -1588,22 +1590,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       for (const cv of cvArray) {
         const placeholder = document.createElement("div");
         placeholder.className = "candidate-result";
-        placeholder.innerHTML = `<h3 class="candidate-name">${cv.name}</h3><div class="loader" style="margin: 10px 0;"></div> ${getUiText('analyzing')}`;
+        placeholder.innerHTML = `<h3 class="candidate-name">${cv.name}</h3><div class="loader" style="margin: 10px 0;"></div> ${getStatusText('generating')}`;
         recommendationsContainer.appendChild(placeholder);
 
         try {
-          const result = await analyzeSingleCvWithAI(cv, rules, currentLang);
-          const resultCard = createCandidateCard(result, currentLang);
-          recommendationsContainer.replaceChild(resultCard, placeholder);
-          
-          allRecommendationsMap[cv.name] = {
-             candidateName: result.candidateName || cv.name,
-             cvName: cv.name,
-             //Ghaith's change start - store both certificates and training courses for PDF/UI
-             recommendations: result.recommendations || [],
-             trainingCourses: result.trainingCourses || []
-             //Ghaith's change end
-          };
+      const result = await analyzeSingleCvWithAI(cv, rules, currentLang);
+      const resultCard = createCandidateCard(result, currentLang);
+      recommendationsContainer.replaceChild(resultCard, placeholder);
+      
+      allRecommendationsMap[cv.name] = {
+         candidateName: result.candidateName || cv.name,
+         cvName: cv.name,
+         //Ghaith's change start - store both certificates and training courses for PDF/UI
+         recommendations: result.recommendations || [],
+         trainingCourses: result.trainingCourses || []
+         //Ghaith's change end
+      };
 
           lastRecommendations = { candidates: Object.values(allRecommendationsMap) };
           saveLastRecommendations(lastRecommendations);
