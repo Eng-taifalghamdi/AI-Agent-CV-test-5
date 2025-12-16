@@ -70,6 +70,43 @@ export default async function handler(req) {
         const reader = upstreamRes.body.getReader();
         let buffer = "";
 
+        // Helper: extract as many complete JSON objects as possible from buffer
+        function* extractJsonObjects(str) {
+          let start = str.indexOf("{");
+          if (start === -1) return;
+
+          let depth = 0;
+          let inString = false;
+          let escaped = false;
+
+          for (let i = start; i < str.length; i++) {
+            const ch = str[i];
+
+            if (inString) {
+              if (ch === "\\" && !escaped) {
+                escaped = true;
+              } else if (ch === '"' && !escaped) {
+                inString = false;
+              } else {
+                escaped = false;
+              }
+            } else {
+              if (ch === '"') {
+                inString = true;
+              } else if (ch === "{") {
+                if (depth === 0) start = i;
+                depth++;
+              } else if (ch === "}") {
+                depth--;
+                if (depth === 0) {
+                  const jsonStr = str.slice(start, i + 1);
+                  yield { jsonStr, endIndex: i + 1 };
+                }
+              }
+            }
+          }
+        }
+
         try {
           while (true) {
             const { done, value } = await reader.read();
@@ -77,17 +114,17 @@ export default async function handler(req) {
 
             buffer += decoder.decode(value, { stream: true });
 
-            // Gemini streaming API typically returns JSON chunks separated by newlines
-            let newlineIndex;
-            while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
-              const line = buffer.slice(0, newlineIndex).trim();
-              buffer = buffer.slice(newlineIndex + 1);
+            // Pull out as many full JSON objects as we can from the buffer
+            while (true) {
+              const iter = extractJsonObjects(buffer);
+              const next = iter.next();
+              if (next.done) break;
 
-              if (!line) continue;
+              const { jsonStr, endIndex } = next.value;
+              buffer = buffer.slice(endIndex);
 
               try {
-                const json = JSON.parse(line);
-                // Extract any text parts from the chunk
+                const json = JSON.parse(jsonStr);
                 const candidates = json.candidates || [];
                 for (const cand of candidates) {
                   const parts = cand.content?.parts || [];
@@ -98,8 +135,11 @@ export default async function handler(req) {
                   }
                 }
               } catch (e) {
-                // If parsing fails, you can log it but don't break the whole stream
-                console.error("Failed to parse Gemini stream chunk:", e);
+                console.error(
+                  "Failed to parse Gemini stream JSON chunk:",
+                  e,
+                  jsonStr
+                );
               }
             }
           }
