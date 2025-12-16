@@ -9,8 +9,8 @@ export const LAST_RECOMMENDATIONS_KEY = "skillMatchLastRecommendations";
 
 // Proxy URL
 export const GEMINI_PROXY_URL = 
-  "https://backend-vercel-repo-git-main-jouds-projects-8f56041e.vercel.app/api/gemini-proxy";
-
+  //"https://backend-vercel-repo-git-main-jouds-projects-8f56041e.vercel.app/api/gemini-proxy";
+  "https://ai-agent-cv-test-5.vercel.app//api/gemini-proxy";
 import { loadCertificates, getCertificatesDatabase } from "./certificates-data.js";
 //Ghaith's change start
 import { loadTrainingCourses, getTrainingCoursesDatabase } from "./training-courses-data.js";
@@ -65,3 +65,4 @@ export function getDefaultRules(lang = 'en') {
 
 // Keep this for backward compatibility
 export const DEFAULT_RULES = DEFAULT_RULES_EN;
+
