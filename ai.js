@@ -46,6 +46,65 @@ export async function callGeminiProxy(payload) {
   return data.text || "";
 }
 
+// 16-12-2025 Ghaith's Change Start
+/**
+ * Streaming proxy call: reads chunks from the Vercel edge function
+ * and passes each chunk to the provided callbacks.
+ *
+ * @param {object} payload - The JSON body to send (prompt, history, etc.)
+ * @param {(chunk: string) => void} onChunk - Called for each text chunk
+ * @param {() => void} [onDone] - Called when the stream finishes
+ * @param {(error: Error) => void} [onError] - Called if an error occurs
+ */
+export async function callGeminiProxyStream(
+  payload,
+  onChunk,
+  onDone,
+  onError
+) {
+  try {
+    const response = await fetch(GEMINI_PROXY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || response.statusText);
+    }
+
+    if (!response.body) {
+      throw new Error("Streaming not supported by this response/browser.");
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+
+    let done = false;
+    while (!done) {
+      const result = await reader.read();
+      done = result.done;
+      if (done) break;
+
+      const chunkText = decoder.decode(result.value, { stream: true });
+      if (chunkText && typeof onChunk === "function") {
+        onChunk(chunkText);
+      }
+    }
+
+    if (typeof onDone === "function") {
+      onDone();
+    }
+  } catch (err) {
+    console.error("callGeminiProxyStream error:", err);
+    if (typeof onError === "function") {
+      onError(err);
+    }
+  }
+}
+// 16-12-2025 Ghaith's Change End
+
 export async function callGeminiAPI(userPrompt, history = [], systemPrompt = "") {
   const formattedHistory = history.map((msg) => ({
     role: msg.isUser ? "user" : "model",
