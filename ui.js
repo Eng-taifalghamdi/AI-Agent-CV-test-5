@@ -38,7 +38,10 @@ import {
   parseAndApplyRules,
   analyzeCvsWithAI,
   displayRecommendations,
+  // 16-12-2025 Ghaith's Change Start
   callGeminiAPI,
+  callGeminiProxyStream,
+  // 16-12-2025 Ghaith's Change End
   analyzeSingleCvWithAI, 
 } from "./ai.js";
 
@@ -1671,6 +1674,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   clearChatHistoryDom();
 
   // Chat Handler
+  // 16-12-2025 Ghaith's Change - delete these (old non-streaming handler kept for reference)
+  /*
   async function handleSendMessage() {
     const message = (userInput.value || "").trim();
     if (!message) return;
@@ -1705,6 +1710,109 @@ document.addEventListener("DOMContentLoaded", async () => {
       sendButton.disabled = false;
     }
   }
+  */
+
+  // 16-12-2025 Ghaith's Change Start
+  async function handleSendMessage() {
+    const message = (userInput.value || "").trim();
+    if (!message) return;
+
+    // Add user message to the chat UI
+    addMessage(message, true);
+    chatHistory.push({ text: message, isUser: true });
+
+    userInput.value = "";
+    sendButton.disabled = true;
+    const typingEl = showTypingIndicator();
+
+    try {
+      const cvArrayForChat =
+        submittedCvData.length > 0 ? submittedCvData : uploadedCvs;
+      const normalizedCvsForChat = cvArrayForChat.map((cv) => ({
+        name: cv.name,
+        text: cv.text,
+        structured: cv.structured || cv,
+      }));
+
+      const enhancedSystemPrompt = buildChatSystemPrompt(
+        normalizedCvsForChat,
+        currentLang
+      );
+
+      const enhancedMessage = buildChatContextMessage(
+        message,
+        userRules,
+        lastRecommendations,
+        currentLang
+      );
+
+      // Prepare payload for the streaming proxy (reusing the same structure
+      // that callGeminiAPI builds internally).
+      const formattedHistory = chatHistory.map((msg) => ({
+        role: msg.isUser ? "user" : "model",
+        parts: [{ text: msg.text }],
+      }));
+      const combinedPrompt = enhancedSystemPrompt
+        ? `${enhancedSystemPrompt.trim()}\n\nUser message:\n${enhancedMessage}`
+        : enhancedMessage;
+      const contents = [
+        ...formattedHistory,
+        { role: "user", parts: [{ text: combinedPrompt }] },
+      ];
+      const proxyPayload = { prompt: combinedPrompt, history: contents };
+
+      // Create an empty bot message div we will progressively fill as chunks arrive
+      const chatMessages = document.getElementById("chat-messages");
+      const botMessageDiv = document.createElement("div");
+      botMessageDiv.className = "message bot-message";
+      botMessageDiv.innerHTML = "";
+      if (chatMessages) {
+        chatMessages.appendChild(botMessageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      let accumulatedText = "";
+
+      await callGeminiProxyStream(
+        proxyPayload,
+        (chunk) => {
+          accumulatedText += chunk;
+          if (botMessageDiv) {
+            // Simple line-break rendering; if you want markdown, you could
+            // integrate with `marked` similarly to `addMessage`.
+            botMessageDiv.innerHTML = accumulatedText.replace(/\n/g, "<br>");
+            if (chatMessages) {
+              chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+          }
+        },
+        () => {
+          hideTypingIndicator();
+          if (accumulatedText.trim()) {
+            chatHistory.push({ text: accumulatedText, isUser: false });
+          }
+          sendButton.disabled = false;
+        },
+        (err) => {
+          console.error("Chat streaming error:", err);
+          hideTypingIndicator();
+          if (botMessageDiv) {
+            botMessageDiv.innerHTML =
+              "Connection error while streaming. Please try again.";
+          } else {
+            addMessage("Connection error while streaming. Please try again.", false);
+          }
+          sendButton.disabled = false;
+        }
+      );
+    } catch (err) {
+      console.error("Chat Handler Error:", err);
+      hideTypingIndicator();
+      addMessage("Connection error. Please try again.", false);
+      sendButton.disabled = false;
+    }
+  }
+  // 16-12-2025 Ghaith's Change End
 
   if (sendButton) sendButton.addEventListener("click", handleSendMessage);
   if (userInput) {
