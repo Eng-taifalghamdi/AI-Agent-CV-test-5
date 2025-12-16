@@ -3,44 +3,112 @@ export const config = {
 };
 
 // 16-12-2025 Ghaith's Change Start
-// Legacy backend URL (existing non-streaming Gemini proxy you used before)
-const LEGACY_BACKEND_URL =
-  "https://backend-vercel-repo-git-main-jouds-projects-8f56041e.vercel.app/api/gemini-proxy";
+
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_MODEL = "models/gemini-2.5-flash-preview-09-2025";
 
 export default async function handler(req) {
+  if (!GEMINI_API_KEY) {
+    return new Response(
+      JSON.stringify({ error: "GEMINI_API_KEY is not set on the server." }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+      }
+    );
+  }
+
   try {
     const body = await req.json();
+    const { prompt, history } = body || {};
 
-    // Forward request to the existing backend that already talks to Gemini
-    const upstreamRes = await fetch(LEGACY_BACKEND_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+    // history is already in Gemini content format from your frontend:
+    // [{ role: "user"|"model", parts: [{ text: "..." }] }, ...]
+    const contents = Array.isArray(history) && history.length > 0
+      ? history
+      : [
+          {
+            role: "user",
+            parts: [{ text: prompt || "" }],
+          },
+        ];
 
-    if (!upstreamRes.ok) {
-      const errorText = await upstreamRes.text();
+    const upstreamRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/${GEMINI_MODEL}:streamGenerateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        // You can add safety settings / generationConfig here if needed
+        body: JSON.stringify({ contents }),
+      }
+    );
+
+    if (!upstreamRes.ok || !upstreamRes.body) {
+      const errText = await upstreamRes.text().catch(() => "");
       return new Response(
         JSON.stringify({
-          error: errorText || upstreamRes.statusText,
+          error:
+            errText ||
+            upstreamRes.statusText ||
+            "Gemini streaming request failed.",
         }),
         {
-          status: upstreamRes.status,
-          headers: {
-            "Content-Type": "application/json; charset=utf-8",
-          },
+          status: upstreamRes.status || 500,
+          headers: { "Content-Type": "application/json; charset=utf-8" },
         }
       );
     }
 
-    const data = await upstreamRes.json();
-    const text = data.text || "";
-
     const encoder = new TextEncoder();
+    const decoder = new TextDecoder("utf-8");
+
     const stream = new ReadableStream({
-      start(controller) {
-        // Stream the real model text as a single chunk for now
-        controller.enqueue(encoder.encode(text));
+      async start(controller) {
+        const reader = upstreamRes.body.getReader();
+        let buffer = "";
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+
+            // Gemini streaming API typically returns JSON chunks separated by newlines
+            let newlineIndex;
+            while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+              const line = buffer.slice(0, newlineIndex).trim();
+              buffer = buffer.slice(newlineIndex + 1);
+
+              if (!line) continue;
+
+              try {
+                const json = JSON.parse(line);
+                // Extract any text parts from the chunk
+                const candidates = json.candidates || [];
+                for (const cand of candidates) {
+                  const parts = cand.content?.parts || [];
+                  for (const part of parts) {
+                    if (part.text) {
+                      controller.enqueue(encoder.encode(part.text));
+                    }
+                  }
+                }
+              } catch (e) {
+                // If parsing fails, you can log it but don't break the whole stream
+                console.error("Failed to parse Gemini stream chunk:", e);
+              }
+            }
+          }
+        } catch (err) {
+          console.error("Error while reading Gemini stream:", err);
+          controller.error(err);
+          return;
+        }
+
         controller.close();
       },
     });
@@ -54,16 +122,12 @@ export default async function handler(req) {
   } catch (err) {
     console.error("Edge proxy error:", err);
     return new Response(
-      JSON.stringify({ error: "Internal error in edge proxy." }),
+      JSON.stringify({ error: "Internal error in edge Gemini proxy." }),
       {
         status: 500,
-        headers: {
-          "Content-Type": "application/json; charset=utf-8",
-        },
+        headers: { "Content-Type": "application/json; charset=utf-8" },
       }
     );
   }
 }
 // 16-12-2025 Ghaith's Change End
-
-
